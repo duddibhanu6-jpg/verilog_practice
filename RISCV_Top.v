@@ -1,0 +1,20 @@
+module RISCV_Top(input clk, reset);
+ reg [31:0] pc;
+ wire [31:0] pc_plus4, instr, imm, r1, r2, alu_b, alu_res, mem_data, wb_data;
+ wire Branch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite, zero;
+ wire [1:0] ALUOp; wire [3:0] alu_ctrl;
+ wire [31:0] branch_target = pc + imm;
+ wire take_branch = Branch & zero;
+ wire [31:0] pc_next = take_branch? branch_target : pc_plus4;
+ assign pc_plus4 = pc + 4;
+ always @(posedge clk or posedge reset) if(reset) pc<=0; else pc<=pc_next;
+ Instruction_Memory IMEM(pc, instr);
+ Control_Unit CU(instr[6:0], Branch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite, ALUOp);
+ ALU_Control ALUC(ALUOp, instr[14:12], instr[31:25], alu_ctrl);
+ Immediate_Generator IMM(instr, imm);
+ RegisterFile RF(clk, reset, instr[19:15], instr[24:20], instr[11:7], wb_data, RegWrite, r1, r2);
+ assign alu_b = ALUSrc? imm : r2;
+ ALU ALUUNIT(r1, alu_b, alu_ctrl, alu_res, zero);
+ Data_Memory DMEM(clk, MemRead, MemWrite, alu_res, r2, mem_data);
+ assign wb_data = MemtoReg? mem_data : alu_res;
+endmodule
