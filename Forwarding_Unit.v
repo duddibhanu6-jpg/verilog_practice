@@ -1,9 +1,15 @@
-module Forwarding_Unit(input [4:0] rs1, rs2, ex_mem_rd, mem_wb_rd, input ex_mem_regwrite, mem_wb_regwrite, output reg [1:0] forwardA, forwardB);
+module Forwarding_Unit(
+    input [4:0] ID_EX_rs1, ID_EX_rs2,
+    input [4:0] EX_MEM_rd, MEM_WB_rd,
+    input EX_MEM_RegWrite, MEM_WB_RegWrite,
+    output reg [1:0] ForwardA, ForwardB
+);
     always @(*) begin
-        forwardA=0; forwardB=0;
-        if(ex_mem_regwrite && ex_mem_rd!=0 && ex_mem_rd==rs1) forwardA=2'b10;
-        else if(mem_wb_regwrite && mem_wb_rd!=0 && mem_wb_rd==rs1) forwardA=2'b01;
-        if(ex_mem_regwrite && ex_mem_rd!=0 && ex_mem_rd==rs2) forwardB=2'b10;
-        else if(mem_wb_regwrite && mem_wb_rd!=0 && mem_wb_rd==rs2) forwardB=2'b01;
+        ForwardA = 2'b00;
+        ForwardB = 2'b00;
+        if(EX_MEM_RegWrite && EX_MEM_rd!=0 && EX_MEM_rd==ID_EX_rs1) ForwardA = 2'b10;
+        else if(MEM_WB_RegWrite && MEM_WB_rd!=0 && MEM_WB_rd==ID_EX_rs1) ForwardA = 2'b01;
+        if(EX_MEM_RegWrite && EX_MEM_rd!=0 && EX_MEM_rd==ID_EX_rs2) ForwardB = 2'b10;
+        else if(MEM_WB_RegWrite && MEM_WB_rd!=0 && MEM_WB_rd==ID_EX_rs2) ForwardB = 2'b01;
     end
 endmodule
